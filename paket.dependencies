@@ -1,0 +1,9 @@
+source https://www.nuget.org/api/v2
+nuget chessie
+nuget FAKE
+nuget FSharp.Core
+nuget FsUnit
+nuget fsunit.xunit
+nuget nunit.console
+nuget xunit
+nuget xunit.runner.console
