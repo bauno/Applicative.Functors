@@ -11,6 +11,11 @@ let ``lift should multiply inner value of success by 2``() =
     |> Trial.lift ((*) 2) 
     |> should equal (ok 32)
 
+let extractError =
+    function
+    | Ok(n, _) -> failwith "Error: I was expecting an error :-)"
+    | Bad s -> s.[0]
+
 let doublex x =
      x * 2
 
@@ -24,26 +29,16 @@ let ``lift should multiply inner value of success by 2 using infix operator``() 
 
 [<Fact>]
 let ``lift applied to a failure should fail``() =
+    fail "error"
+    |> Trial.lift doublex
+    |> extractError
+    |> should equal "error"
 
-    let pippo =
-        Trial.lift doublex
-    
-    let arg = fail "Lo zio!!"
-
-    let pluto = pippo arg
-
-    match pluto with
-    | Ok(n,_) -> printfn "Pluto is %i" n
-    | Bad s -> s.[0] |> should equal "Lo zio!!"
-
-    printfn "Lo zio: %A" pluto
-    pluto
-    |> should equal (Bad["Lo zio"])
-
-    let qui = Error "Lo zio"
-        
-    // fail "error"
-    // |> Trial.lift ((*) 2) 
-    // |> should equal (Error "error")
+[<Fact>]
+let ``lift applied to a failure using infix operator should fail``() =
+    doublex <!> fail "Infix error"
+    |> extractError
+    |> should equal "Infix error"
+   
 
 
