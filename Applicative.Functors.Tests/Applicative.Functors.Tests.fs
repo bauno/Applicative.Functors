@@ -7,6 +7,16 @@ open Chessie.ErrorHandling
 open Applicative.Core
 open Swensen.Unquote
 
+let xok = 
+    function
+    | Ok(value, _) -> value
+    | _ -> failwith ("Error: I was expecting ok")
+
+let xerr = 
+    function
+    | Bad errors -> errors
+    | _ -> failwith ("Error: I was expecting an error")    
+
 [<Fact>]
 let ``lift should multiply inner value of success by 2``() =
     ok 16
