@@ -1,4 +1,4 @@
- module Applicative.Functors.Tests
+module Applicative.Functors.Tests
 
 open Xunit
 open FsUnit.Xunit
@@ -12,55 +12,38 @@ let ``lift should multiply inner value of success by 2``() =
     ok 16
     |> Trial.lift ((*) 2)
     |> should equal (ok 32)
-
-let extractError =
-    function
-    | Ok(n, _) -> failwith "Error: I was expecting an error :-)"
-    | Bad s -> s
-
-let extractOk =
-    function
-    | Ok(n,_) -> n
-    | Bad _ -> failwith "Error: I was expecting ok!"
-
 let doublex x =
      x * 2
 
 [<Fact>]
 let ``lift should multiply inner value of success by 2 using infix operator``() =
-
-    // (<!>) ((*) 2) (ok 16)
-    // ((*) 2) <!> (ok 16)
     doublex <!> ok 16
     |> should equal (ok 32)
 
 [<Fact>]
 let ``lift applied to a failure should fail``() =
-    fail "error"
-    |> Trial.lift doublex
-    |> extractError
-    |> should equal ["error"]
+    fail<int,string> "error"
+    |> Trial.lift doublex    
+    |> should equal (Bad ["error"] : Result<int, string>)
 
 [<Fact>]
 let ``lift applied to a failure using infix operator should fail``() =
-    doublex <!> fail "Infix error"
-    |> extractError
-    |> should equal ["Infix error"]
+    doublex <!> fail<int,string> "Infix error"
+    |> should equal (Bad ["Infix error"]: Result<int, string>)
 
 
 [<Fact>]
 let ``bind should bypass after first error``() =
     let validate c = ok c
-    let update c = fail "update error"
-    let send c = fail "send error"
+    let update c = fail<Customer, string> "update error"
+    let send c = fail<Customer, string> "send error"
 
     let customer = { Id = 42; Name = "John"; Email = "john@example.com" }
 
     validate customer
     >>= update
     >>= send
-    |> extractError
-    |> should equal ["update error"]
+    |> should equal (Bad ["update error"] : Result<Customer, string>)
 
 [<Fact>]
 let ``bind should create valid customer if no failures``() =
@@ -78,8 +61,7 @@ let ``bind should create valid customer if no failures``() =
 [<Fact>]
 let ``apply valid inputs should create valid customer``() =
     createCustomer 42 "John" "john@example.com"
-    |> extractOk
-    |> should equal { Id = 42; Name = "John"; Email = "john@example.com" }
+    |> should equal (ok { Id = 42; Name = "John"; Email = "john@example.com" } : Result<Customer, string>)
 
 [<Fact>]
 let ``apply invalid inputs should fail with accumulated messages``() =    
